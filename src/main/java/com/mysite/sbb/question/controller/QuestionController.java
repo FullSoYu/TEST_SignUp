@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @RequestMapping("/question")
 @Controller
@@ -37,7 +38,7 @@ public class QuestionController {
     }
 
     @RequestMapping("/detail/{id}")
-    public String detail(Model model, @PathVariable Integer id, AnswerForm answerForm) {
+    public String detail(Model model, @PathVariable Integer id, AnswerForm answerForm, @AuthenticationPrincipal SiteUser siteUser, Principal principal) {
         System.out.println("id: " + id);
         Question question = questionService.getQuestion(id);
         model.addAttribute("question", question);
@@ -65,9 +66,10 @@ public class QuestionController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/modify/{id}")
     public String questionModify(QuestionForm questionForm, @PathVariable("id") Integer id, @AuthenticationPrincipal SiteUser siteUser) {
+        System.out.println("authority: " + siteUser.getRole()!="ROLE_ADMIN");
         Question question = this.questionService.getQuestion(id);
-        if(!question.getAuthor().getUsername().equals(siteUser.getUsername())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
+        if((!question.getAuthor().getUsername().equals(siteUser.getUsername())) && !(siteUser.getRole().equals("ROLE_ADMIN"))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
         }
         questionForm.setSubject(question.getSubject());
         questionForm.setContent(question.getContent());
@@ -82,7 +84,7 @@ public class QuestionController {
             return "question_form";
         }
         Question question = this.questionService.getQuestion(id);
-        if (!question.getAuthor().getUsername().equals(siteUser.getUsername())) {
+        if((!question.getAuthor().getUsername().equals(siteUser.getUsername())) && !(siteUser.getRole().equals("ROLE_ADMIN"))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
         }
         this.questionService.modify(question, questionForm.getSubject(), questionForm.getContent());
