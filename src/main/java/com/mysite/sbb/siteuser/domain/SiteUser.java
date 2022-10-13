@@ -1,6 +1,7 @@
 package com.mysite.sbb.siteuser.domain;
 
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
