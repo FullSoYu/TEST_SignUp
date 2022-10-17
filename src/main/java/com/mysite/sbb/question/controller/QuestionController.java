@@ -42,7 +42,6 @@ public class QuestionController {
 
     @RequestMapping("/detail/{id}")
     public String detail(Model model, @PathVariable Integer id, AnswerForm answerForm, @AuthenticationPrincipal SiteUser siteUser, Principal principal) {
-        System.out.println("id: " + id);
         Question question = questionService.getQuestion(id);
         model.addAttribute("question", question);
         return "question_detail";
