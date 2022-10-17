@@ -11,23 +11,27 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class UserSecurityService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    private final EntityManager em;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<SiteUser> _siteUser = this.userRepository.findByUsername(username);
-        if(_siteUser.isEmpty()) {
-            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다.");
-        }
-        SiteUser siteUser = _siteUser.get();
+        Optional<SiteUser> siteUser = this.userRepository.findByUsername(username);
+
+        em.persist(siteUser.get());
+
         List<GrantedAuthority> authorities = new ArrayList<>();
         if ("admin".equals(username)) {
             authorities.add(new SimpleGrantedAuthority(UserRole.ADMIN.getValue()));
@@ -36,6 +40,6 @@ public class UserSecurityService implements UserDetailsService {
         }
 
 
-        return siteUser;
+        return siteUser.orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
     }
 }

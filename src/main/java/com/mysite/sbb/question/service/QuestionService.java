@@ -3,6 +3,7 @@ package com.mysite.sbb.question.service;
 import com.mysite.sbb.question.dao.QuestionRepository;
 import com.mysite.sbb.question.domain.Question;
 import com.mysite.sbb.siteuser.domain.SiteUser;
+import com.mysite.sbb.siteuser.service.UserService;
 import com.mysite.sbb.util.DataNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +20,11 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
+
+    private final UserService userService;
     private final QuestionRepository questionRepository;
+
+    private final EntityManager em;
 
     public List<Question> getList() {
         return questionRepository.findAll();
@@ -56,13 +62,16 @@ public class QuestionService {
     }
 
     public void vote(Question question, SiteUser siteUser) {
-
-        if(question.getVoter().contains(siteUser)) {
-            question.getVoter().remove(siteUser);
+        System.out.println(question.getVoter());
+        System.out.println("@AuthenticationPrincipal: " + siteUser);
+        System.out.println("from userRepository: " + userService.getUser(siteUser.getUsername()));
+        System.out.println("em: " + em.find(SiteUser.class, siteUser.getId()));
+        if(!question.getVoter().contains(em.find(SiteUser.class, siteUser.getId()))) {
+            question.getVoter().add(em.find(SiteUser.class, siteUser.getId()));
         } else {
-            question.getVoter().add(siteUser);
+            question.getVoter().remove(em.find(SiteUser.class, siteUser.getId()));
         }
-        this.questionRepository.save(question);
+        questionRepository.save(question);
 
     }
 }
