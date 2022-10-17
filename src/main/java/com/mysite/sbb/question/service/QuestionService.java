@@ -56,7 +56,13 @@ public class QuestionService {
     }
 
     public void vote(Question question, SiteUser siteUser) {
-        question.getVoter().add(siteUser);
-        questionRepository.save(question);
+        System.out.println("questionId: " + questionRepository.findQuestionByVoter(siteUser.getId(), Long.valueOf(question.getId())).getQuestionId());
+        if (questionRepository.findQuestionByVoter(siteUser.getId(), Long.valueOf(question.getId())) == null) {
+            question.getVoter().add(siteUser);
+            questionRepository.save(question);
+        } else {
+            question.getVoter().remove(siteUser);
+            questionRepository.deleteQuestionByVoter(siteUser.getId(), question.getId());
+        }
     }
 }
